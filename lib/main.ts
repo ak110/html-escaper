@@ -116,15 +116,13 @@ export class HtmlEscaper {
     const newElement = document.createElement(tagName)
 
     // 属性の処理
-    for (let i = 0; i < element.attributes.length; i++) {
-      const attribute = element.attributes[i]
+    for (const attribute of Array.from(element.attributes)) {
       const attributeName = attribute.name.toLowerCase()
 
       if (this.allowedAttributes[tagName]?.includes(attributeName) || this.allowedAttributes["*"]?.includes(attributeName)) {
         if (attribute.name === "style") {
           // Style属性の処理
-          for (let s = 0; s < element.style.length; s++) {
-            const styleName = element.style[s]
+          for (const styleName of Array.from(element.style)) {
             if (this.allowedCssStyles.includes(styleName)) {
               newElement.style.setProperty(styleName, element.style.getPropertyValue(styleName))
             }
@@ -179,8 +177,7 @@ export class HtmlEscaper {
         const newNode: HTMLElement = document.createElement(this.allowedContentTags.includes(tagName) ? "div" : tagName)
 
         // 属性の処理
-        for (let i = 0; i < element.attributes.length; i++) {
-          const attribute = element.attributes[i]
+        for (const attribute of Array.from(element.attributes)) {
           const attributeName = attribute.name.toLowerCase()
           if (
             this.allowedAttributes[tagName]?.includes(attributeName) ||
@@ -188,8 +185,7 @@ export class HtmlEscaper {
           ) {
             if (attribute.name === "style") {
               // Style属性内は許可するCSSプロパティのみ
-              for (let s = 0; s < element.style.length; s++) {
-                const styleName = element.style[s]
+              for (const styleName of Array.from(element.style)) {
                 if (this.allowedCssStyles.includes(styleName)) {
                   newNode.style.setProperty(styleName, element.style.getPropertyValue(styleName))
                 }
@@ -210,8 +206,7 @@ export class HtmlEscaper {
         }
 
         // 子要素の再帰処理
-        for (let i = 0; i < node.childNodes.length; i++) {
-          const child: Node = node.childNodes[i]
+        for (const child of Array.from(node.childNodes)) {
           const subCopy: Node = this.makeEscapedCopy(child, document, extraSelector)
           newNode.append(subCopy)
         }
