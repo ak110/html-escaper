@@ -1,32 +1,25 @@
-import {
-  allowedAttributes,
-  allowedContentTags,
-  allowedCssStyles,
-  allowedSchemas,
-  allowedTags,
-  uriAttributes,
-} from "./constants.js"
+import constants from "./constants.js"
 
 export class HtmlEscaper {
   // エスケープ対象のタグ（小文字で指定）
-  private readonly allowedTags: string[] = [...allowedTags]
+  private readonly allowedTags: string[] = [...constants.allowedTags]
 
   // コンテンツ変換対象のタグ（DIVに変換）
-  private readonly allowedContentTags: string[] = [...allowedContentTags]
+  private readonly allowedContentTags: string[] = [...constants.allowedContentTags]
 
   // 許可する属性
   private readonly allowedAttributes: Record<string, string[]> = {
-    ...allowedAttributes,
+    ...constants.allowedAttributes,
   }
 
   // 許可するCSSプロパティ
-  private readonly allowedCssStyles: string[] = [...allowedCssStyles]
+  private readonly allowedCssStyles: string[] = [...constants.allowedCssStyles]
 
   // 許可するスキーム
-  private readonly allowedSchemas: string[] = [...allowedSchemas]
+  private readonly allowedSchemas: string[] = [...constants.allowedSchemas]
 
   // URIが指定できる属性
-  private readonly uriAttributes: string[] = [...uriAttributes]
+  private readonly uriAttributes: string[] = [...constants.uriAttributes]
 
   private readonly parser: DOMParser = new DOMParser()
 
