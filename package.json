@@ -1,6 +1,9 @@
 {
   "name": "@ak110/html-escaper",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.1.0",
   "description": "HTML文字列をエスケープするライブラリ",
   "license": "MIT",
