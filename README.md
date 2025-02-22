@@ -22,21 +22,25 @@ pnpm install
 ### ブラウザで直接利用する場合
 
 ```html
-<script src="path/to/dist/html-escaper.min.js"></script>
+<script>
+  import { HtmlEscaper } from 'path/to/dist/html-escaper.min.js';
 
-// 安全でない可能性のあるHTMLをエスケープ
-const dirtyHtml = `
-  <div onclick="alert('XSS')">
-    <script>malicious code</script>
-    <p style="color: red;">Hello <b>World</b></p>
-  </div>
-`;
+  const escaper = new HtmlEscaper();
 
-const cleanHtml = escaper.escapeHtml(dirtyHtml);
-// 結果: 安全なHTMLが生成されます
-// - スクリプトタグはエスケープされます
-// - イベントハンドラは削除されます
-// - 許可された属性とスタイルは保持されます
+  // 安全でない可能性のあるHTML
+  const dirtyHtml = `
+    <div onclick="alert('XSS')">
+      <script>malicious code</script>
+      <p style="color: red;">Hello <b>World</b></p>
+    </div>
+  `;
+
+  const cleanHtml = escaper.escapeHtml(dirtyHtml);
+  // 結果: 安全なHTMLが生成されます
+  // - スクリプトタグはエスケープされます
+  // - イベントハンドラは削除されます
+  // - 許可された属性とスタイルは保持されます
+</script>
 ```
 
 ## 設定可能な要素
