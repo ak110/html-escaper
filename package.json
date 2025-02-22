@@ -1,6 +1,6 @@
 {
   "name": "html-escaper",
-  "private": true,
+  "private": false,
   "version": "0.1.0",
   "description": "HTML文字列をエスケープするライブラリ",
   "license": "MIT",
@@ -26,17 +26,17 @@
     "dist",
     "index.d.ts"
   ],
-  "main": "./dist/html-escaper.js",
+  "main": "./dist/html-escaper.cjs",
   "module": "./dist/html-escaper.js",
   "types": "./index.d.ts",
   "exports": {
     "types": "./index.d.ts",
     "import": "./dist/html-escaper.js",
-    "require": "./dist/html-escaper.js"
+    "require": "./dist/html-escaper.cjs"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && terser dist/html-escaper.js -o dist/html-escaper.min.js --source-map \"content=dist/html-escaper.js.map,url=html-escaper.min.js.map\" --compress --mangle",
+    "build": "tsc && vite build && vite build -c vite.config.cjs.ts && terser dist/html-escaper.js -o dist/html-escaper.min.js --source-map \"content=dist/html-escaper.js.map,url=html-escaper.min.js.map\" --compress --mangle",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "devDependencies": {
