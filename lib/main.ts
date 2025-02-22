@@ -1,158 +1,45 @@
+import {
+  ALLOWED_ATTRIBUTES,
+  ALLOWED_CONTENT_TAGS,
+  ALLOWED_CSS_STYLES,
+  ALLOWED_SCHEMAS,
+  ALLOWED_TAGS,
+  URI_ATTRIBUTES
+} from "./constants";
+
 export class HtmlEscaper {
   // エスケープ対象のタグ（小文字で指定）
-  private allowedTags: string[] = [
-    "a",
-    "abbr",
-    "acronym",
-    "address",
-    "area",
-    "article",
-    "aside",
-    "b",
-    "base",
-    "basefont",
-    "bdi",
-    "bdo",
-    "big",
-    "blink",
-    "blockquote",
-    "br",
-    "button",
-    "caption",
-    "center",
-    "cite",
-    "code",
-    "col",
-    "colgroup",
-    "command",
-    "content",
-    "data",
-    "datalist",
-    "dd",
-    "del",
-    "details",
-    "dfn",
-    "dialog",
-    "dir",
-    "div",
-    "dl",
-    "dt",
-    "element",
-    "em",
-    "fieldset",
-    "figcaption",
-    "figure",
-    "font",
-    "footer",
-    "form",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "header",
-    "hgroup",
-    "hr",
-    "i",
-    "image",
-    "img",
-    "input",
-    "ins",
-    "isindex",
-    "kbd",
-    "keygen",
-    "label",
-    "legend",
-    "li",
-    "listing",
-    "main",
-    "map",
-    "mark",
-    "marquee",
-    "menu",
-    "menuitem",
-    "meter",
-    "multicol",
-    "nav",
-    "nobr",
-    "noembed",
-    "noframes",
-    "noscript",
-    "ol",
-    "optgroup",
-    "option",
-    "output",
-    "p",
-    "picture",
-    "plaintext",
-    "pre",
-    "progress",
-    "q",
-    "rp",
-    "s",
-    "samp",
-    "section",
-    "select",
-    "shadow",
-    "small",
-    "spacer",
-    "span",
-    "strike",
-    "strong",
-    "style",
-    "sub",
-    "summary",
-    "sup",
-    "table",
-    "tbody",
-    "td",
-    "template",
-    "textarea",
-    "tfoot",
-    "th",
-    "thead",
-    "time",
-    "tr",
-    "tt",
-    "u",
-    "ul",
-    "var",
-    "wbr",
-  ];
+  private allowedTags: string[] = [...ALLOWED_TAGS];
 
   // コンテンツ変換対象のタグ（DIVに変換）
-  private contentTagWhitelist: string[] = ["form", "google-sheets-html-origin"];
+  private contentTagWhitelist: string[] = [...ALLOWED_CONTENT_TAGS];
 
   // 許可する属性
-  private allowedAttributes: { [key: string]: string[] } = {
-    "*": ["id", "title", "class", "style"],
-    "a": ["href", "alt", "title", "target", "rel"],
-    "details": ["open"],
-    "img": ["src", "alt", "title", "width", "height"],
-    "td": ["colspan", "rowspan"],
-    "th": ["colspan", "rowspan"],
-    "tr": ["rowspan"],
-  };
+  private allowedAttributes: { [key: string]: string[] } = { ...ALLOWED_ATTRIBUTES };
 
   // 許可するCSSプロパティ
-  private allowedCssStyles: string[] = [
-    "background-color",
-    "color",
-    "font-size",
-    "font-weight",
-    "text-align",
-    "text-decoration",
-    "width"
-  ];
+  private allowedCssStyles: string[] = [...ALLOWED_CSS_STYLES];
 
   // 許可するスキーム
-  private allowedSchemas: string[] = ['http:', 'https:', 'data:', 'm-files:', 'file:', 'ftp:', 'mailto:', 'pw:'];
+  private allowedSchemas: string[] = [...ALLOWED_SCHEMAS];
 
   // URIが指定できる属性
-  private uriAttributes: string[] = ["href", "action"];
+  private uriAttributes: string[] = [...URI_ATTRIBUTES];
 
   private parser: DOMParser = new DOMParser();
+
+  public getAllowedTags(): string[] {
+    return this.allowedTags;
+  }
+  public getAllowedAttributes(): { [key: string]: string[] } {
+    return this.allowedAttributes;
+  }
+  public getAllowedCssStyles(): string[] {
+    return this.allowedCssStyles;
+  }
+  public getAllowedSchemas(): string[] {
+    return this.allowedSchemas;
+  }
 
   /**
    * HTML文字列をエスケープします。
@@ -272,16 +159,85 @@ export class HtmlEscaper {
     return false;
   }
 
-  public getAllowedTags(): string[] {
-    return this.allowedTags;
-  }
-  public getAllowedAttributes(): { [key: string]: string[] } {
-    return this.allowedAttributes;
-  }
-  public getAllowedCssStyles(): string[] {
-    return this.allowedCssStyles;
-  }
-  public getAllowedSchemas(): string[] {
-    return this.allowedSchemas;
+  /**
+   * 単一のHTMLタグ/閉じタグを前提にエスケープします。
+   * @param input 入力HTMLタグ文字列
+   * @returns エスケープ後のHTML文字列
+   */
+  public escapeTag(input: string): string {
+    // 空文字列チェック
+    input = input.trim();
+    if (input === "") return "";
+
+    // 終了タグの処理 (例: </script>)
+    if (input.includes("</")) {
+      const match = input.match(/<\/([a-zA-Z][a-zA-Z0-9]*)\s*>/);
+      if (match) {
+        const tagName = match[1].toLowerCase();
+        return this.allowedTags.includes(tagName)
+          ? `</${tagName}>`
+          : input.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+    }
+
+    // DOMParserでタグをパース
+    const doc = this.parser.parseFromString(`<body>${input}</body>`, "text/html");
+    const element = doc.body.firstElementChild as HTMLElement;
+    
+    // タグが存在しない場合は入力をそのまま返す
+    if (!element) return input;
+
+    const tagName = element.tagName.toLowerCase();
+
+    // 許可されていないタグはすべてエスケープする
+    if (!this.allowedTags.includes(tagName)) {
+      return input.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // 新しい要素を作成
+    const newElement = doc.createElement(tagName);
+
+    // 属性の処理
+    for (let i = 0; i < element.attributes.length; i++) {
+      const attr = element.attributes[i];
+      const attrName = attr.name.toLowerCase();
+      
+      if (this.allowedAttributes[tagName]?.includes(attrName) || 
+          this.allowedAttributes["*"]?.includes(attrName)) {
+        
+        if (attr.name === "style") {
+          // style属性の処理
+          for (let s = 0; s < element.style.length; s++) {
+            const styleName = element.style[s];
+            if (this.allowedCssStyles.includes(styleName)) {
+              newElement.style.setProperty(
+                styleName, 
+                element.style.getPropertyValue(styleName)
+              );
+            }
+          }
+        } else if (this.uriAttributes.includes(attr.name)) {
+          // URI属性の処理
+          if (!attr.value.includes(":") || 
+              this.startsWithAny(attr.value, this.allowedSchemas)) {
+            newElement.setAttribute(attr.name, attr.value);
+          }
+        } else {
+          newElement.setAttribute(attr.name, attr.value);
+        }
+      }
+    }
+
+    // テキストコンテンツの処理
+    if (element.textContent) {
+      newElement.textContent = element.textContent;
+    }
+
+    // 空要素の場合は終了タグを省略
+    const html = newElement.outerHTML;
+    if (element.children.length === 0 && !element.textContent) {
+      return html.replace(/<([^>]+)><\/[^>]+>/, '<$1>');
+    }
+    return html;
   }
 }

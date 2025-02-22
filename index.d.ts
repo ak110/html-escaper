@@ -8,6 +8,13 @@ declare class HtmlEscaper {
   escapeHtml(input: string, extraSelector?: string): string;
 
   /**
+   * 単一のHTMLタグ/閉じタグを前提にエスケープします。
+   * @param input 入力HTMLタグ文字列
+   * @returns エスケープ後のHTML文字列
+   */
+  escapeTag(input: string): string;
+
+  /**
    * 許可されているHTMLタグの一覧を取得します。
    * @returns 許可されているタグの配列
    */

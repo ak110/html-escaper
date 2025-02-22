@@ -13,4 +13,7 @@ build:
 test:
 	pnpm run test
 
-.PHONY: help install run build test
+publish:
+	pnpm publish
+
+.PHONY: help install run build test publish

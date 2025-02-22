@@ -1,10 +1,40 @@
 import { HtmlEscaper } from './main';
 
+
 describe('HtmlEscaper', () => {
   let escaper: HtmlEscaper;
 
   beforeEach(() => {
     escaper = new HtmlEscaper();
+  });
+
+  describe('Getters', () => {
+    it('許可されたタグのリストを取得できる', () => {
+      const tags = escaper.getAllowedTags();
+      expect(Array.isArray(tags)).toBe(true);
+      expect(tags.includes('p')).toBe(true);
+      expect(tags.includes('div')).toBe(true);
+    });
+
+    it('許可された属性のリストを取得できる', () => {
+      const attrs = escaper.getAllowedAttributes();
+      expect(Array.isArray(attrs['*'])).toBe(true);
+      expect(Array.isArray(attrs['a'])).toBe(true);
+      expect(attrs['*']).toContain('class');
+      expect(attrs['a']).toContain('href');
+    });
+
+    it('許可されたCSSスタイルのリストを取得できる', () => {
+      const styles = escaper.getAllowedCssStyles();
+      expect(styles.includes('color')).toBe(true);
+      expect(styles.includes('background-color')).toBe(true);
+    });
+
+    it('許可されたスキーマのリストを取得できる', () => {
+      const schemas = escaper.getAllowedSchemas();
+      expect(schemas.includes('https:')).toBe(true);
+      expect(schemas.includes('http:')).toBe(true);
+    });
   });
 
   describe('escapeHtml', () => {
@@ -84,32 +114,42 @@ describe('HtmlEscaper', () => {
     });
   });
 
-  describe('Getters', () => {
-    it('許可されたタグのリストを取得できる', () => {
-      const tags = escaper.getAllowedTags();
-      expect(Array.isArray(tags)).toBe(true);
-      expect(tags.includes('p')).toBe(true);
-      expect(tags.includes('div')).toBe(true);
+  describe('escapeTag', () => {
+    it('許可されているタグをエスケープしない', () => {
+      expect(escaper.escapeTag('<span>')).toBe('<span>');
+      expect(escaper.escapeTag('</span>')).toBe('</span>');
     });
 
-    it('許可された属性のリストを取得できる', () => {
-      const attrs = escaper.getAllowedAttributes();
-      expect(Array.isArray(attrs['*'])).toBe(true);
-      expect(Array.isArray(attrs['a'])).toBe(true);
-      expect(attrs['*']).toContain('class');
-      expect(attrs['a']).toContain('href');
+    it('許可されていないタグをエスケープする', () => {
+      expect(escaper.escapeTag('<script>')).toBe('&lt;script&gt;');
+      expect(escaper.escapeTag('</script>')).toBe('&lt;/script&gt;');
     });
 
-    it('許可されたCSSスタイルのリストを取得できる', () => {
-      const styles = escaper.getAllowedCssStyles();
-      expect(styles.includes('color')).toBe(true);
-      expect(styles.includes('background-color')).toBe(true);
+    it('有効な属性を保持しながら悪意のある属性を無効化する', () => {
+      expect(escaper.escapeTag('<span style="color: red;" onclick="alert(1)">'))
+        .toBe('<span style="color: red;">');
     });
 
-    it('許可されたスキーマのリストを取得できる', () => {
-      const schemas = escaper.getAllowedSchemas();
-      expect(schemas.includes('https:')).toBe(true);
-      expect(schemas.includes('http:')).toBe(true);
+    it('imgタグを正しく処理する', () => {
+      expect(escaper.escapeTag('<img src="x" onerror="alert(1)">'))
+        .toBe('<img src="x">');
+    });
+
+    it('悪意のあるURLを無効化する', () => {
+      expect(escaper.escapeTag('<a href="javascript:alert(1)">'))
+        .toBe('<a>');
+      expect(escaper.escapeTag('<a href="http://example.com">'))
+        .toBe('<a href="http://example.com">');
+    });
+
+    it('空の入力を処理する', () => {
+      expect(escaper.escapeTag('')).toBe('');
+      expect(escaper.escapeTag('   ')).toBe('');
+    });
+
+    it('許可されたスタイルを保持する', () => {
+      expect(escaper.escapeTag('<span style="color: red; font-size: 12px; position: absolute;">'))
+        .toBe('<span style="color: red; font-size: 12px;">');
     });
   });
 });
