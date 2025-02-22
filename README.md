@@ -23,7 +23,7 @@ pnpm install
 
 ```html
 <script>
-  import { HtmlEscaper } from 'path/to/dist/html-escaper.min.js';
+  import { HtmlEscaper } from 'path/to/dist/html-escaper.min.mjs';
 
   const escaper = new HtmlEscaper();
 
