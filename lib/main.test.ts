@@ -51,20 +51,21 @@ describe('HtmlEscaper', () => {
           <p onclick="alert(1)" style="color: blue;">
             <b>Hello</b>
             <script>alert(2)</script>
-            <img src="image.jpg" onerror="alert(3)" />
+            <img src="image.jpg" onError=alert(3)>
+            <span style='color: red'>あいうえお</span>
           </p>
         </div>
       `;
       const output = escaper.escapeHtml(input);
       
       // 許可された属性とスタイルが保持される
-      expect(output).toContain('class="container"');
-      expect(output).toContain('style="background-color: rgb(255, 255, 255);"');
-      expect(output).toContain('style="color: blue;"');
+      expect(output).toContain('<div class="container" style="background-color: rgb(255, 255, 255);">');
+      expect(output).toContain('<p style="color: blue;">');
+      expect(output).toContain('<span style="color: red;">');
       
       // 不正なイベントハンドラが除去される
       expect(output).not.toContain('onclick');
-      expect(output).not.toContain('onerror');
+      expect(output.toLowerCase()).not.toContain('onerror');
       
       // スクリプトタグがエスケープされる
       expect(output).toContain('&lt;script&gt;');
