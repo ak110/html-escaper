@@ -11,4 +11,7 @@ run:
 build:
 	pnpm run build
 
+test:
+	pnpm run test
+
 .PHONY: help install run

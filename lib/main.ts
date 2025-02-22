@@ -164,19 +164,19 @@ export class HtmlEscaper {
     if (input.indexOf("<body") === -1) {
       input = `<body>${input}</body>`;
     }
-
     const doc: Document = this.parser.parseFromString(input, "text/html");
+    
+    const fragment = doc.createDocumentFragment();
+    Array.from(doc.body.childNodes).forEach(node => {
+      const processed = this.makeEscapedCopy(node, doc, extraSelector);
+      if (processed) {
+        fragment.appendChild(processed);
+      }
+    });
 
-    const resultElement: Node = this.makeEscapedCopy(doc.body, doc, extraSelector);
-
-    let resultHtml: string;
-    if (resultElement instanceof HTMLElement) {
-      resultHtml = resultElement.innerHTML;
-    } else {
-      const container: HTMLElement = doc.createElement("div");
-      container.appendChild(resultElement);
-      resultHtml = container.innerHTML;
-    }
+    const container: HTMLElement = doc.createElement("div");
+    container.appendChild(fragment);
+    const resultHtml = container.innerHTML;
     // 改行等の調整（必要に応じて調整してください）
     return resultHtml.replace(/<br[^>]*>(\S)/g, "<br>\n$1")
                      .replace(/div><div/g, "div>\n<div");
@@ -244,44 +244,12 @@ export class HtmlEscaper {
         }
         return newNode;
       } else {
-        // 無害でないタグの場合、タグ名、全属性、子要素をエスケープして文字列に置き換え
-        let result: string = "<" + element.tagName;
-        for (let i = 0; i < element.attributes.length; i++) {
-          const attr = element.attributes[i];
-          result += " " + attr.name + "=\"" + this.escapeHTML(attr.value) + "\"";
-        }
-        result += ">";
-        // 子要素をエスケープして連結
-        for (let i = 0; i < element.childNodes.length; i++) {
-          const child: Node = element.childNodes[i];
-          if (child.nodeType === Node.TEXT_NODE) {
-            result += this.escapeHTML(child.nodeValue || "");
-          } else if (child.nodeType === Node.ELEMENT_NODE) {
-            const childElem = child as Element;
-            result += this.escapeHTML(childElem.outerHTML);
-          } else {
-            result += this.escapeHTML(child.textContent || "");
-          }
-        }
-        result += "</" + element.tagName + ">";
-        return doc.createTextNode(result);
+        // scriptなどの不正なタグの場合はエスケープしたテキストノードにする
+        return doc.createTextNode(element.outerHTML);
       }
     }
     // テキスト、コメントその他は空のフラグメントとして返す
     return doc.createDocumentFragment();
-  }
-
-  /**
-   * HTMLエスケープを行います。
-   * @param str 入力文字列
-   * @returns エスケープ済み文字列
-   */
-  private escapeHTML(str: string): string {
-    return str.replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#39;");
   }
 
   /**
@@ -302,7 +270,7 @@ export class HtmlEscaper {
   public getAllowedTags(): string[] {
     return this.allowedTags;
   }
-  public getAllowedAttributes(): { [key: string]: boolean } {
+  public getAllowedAttributes(): { [key: string]: string[] } {
     return this.allowedAttributes;
   }
   public getAllowedCssStyles(): { [key: string]: boolean } {
