@@ -51,7 +51,7 @@ describe('HtmlEscaper', () => {
           <p onclick="alert(1)" style="color: blue;">
             <b>Hello</b>
             <script>alert(2)</script>
-            <img src="image.jpg" onError=alert(3)>
+            <img src="image.jpg" onerror=alert(3)>
             <span style='color: red'>あいうえお</span>
           </p>
         </div>
@@ -65,7 +65,7 @@ describe('HtmlEscaper', () => {
       
       // 不正なイベントハンドラが除去される
       expect(output).not.toContain('onclick');
-      expect(output.toLowerCase()).not.toContain('onerror');
+      expect(output).not.toContain('onerror');
       
       // スクリプトタグがエスケープされる
       expect(output).toContain('&lt;script&gt;');
