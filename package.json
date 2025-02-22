@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && terser dist/html-escaper.js -o dist/html-escaper.min.js --source-map \"content=dist/html-escaper.js.map,url=html-escaper.min.js.map\" --compress --mangle",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "devDependencies": {
