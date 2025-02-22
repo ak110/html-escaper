@@ -1,5 +1,7 @@
 # HTML Escaper
 
+[![npm version](https://badge.fury.io/js/@ak110%2Fhtml-escaper.svg)](https://www.npmjs.com/package/@ak110/html-escaper)
+
 安全なHTMLコンテンツを生成するためのTypeScriptライブラリです。XSS（クロスサイトスクリプティング）攻撃を防ぐため、
 HTMLコンテンツを適切にエスケープし、許可された要素と属性のみを保持します。
 
