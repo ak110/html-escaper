@@ -27,16 +27,16 @@
     "index.d.ts"
   ],
   "main": "./dist/html-escaper.cjs",
-  "module": "./dist/html-escaper.js",
+  "module": "./dist/html-escaper.mjs",
   "types": "./index.d.ts",
   "exports": {
     "types": "./index.d.ts",
-    "import": "./dist/html-escaper.js",
+    "import": "./dist/html-escaper.mjs",
     "require": "./dist/html-escaper.cjs"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && vite build -c vite.config.cjs.ts && terser dist/html-escaper.js -o dist/html-escaper.min.js --source-map \"content=dist/html-escaper.js.map,url=html-escaper.min.js.map\" --compress --mangle",
+    "build": "rm -rf dist && tsc && vite build && terser dist/html-escaper.mjs -o dist/html-escaper.min.mjs --source-map \"content=dist/html-escaper.mjs.map,url=html-escaper.min.js.map\" --compress --mangle",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "devDependencies": {

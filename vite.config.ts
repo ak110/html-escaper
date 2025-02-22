@@ -5,8 +5,8 @@ export default defineConfig({
     lib: {
       entry: './lib/main.ts',
       name: 'HtmlEscaper',
-      formats: ['es'],
-      fileName: 'html-escaper'
+      formats: ['es', 'cjs', 'umd'],
+      fileName: (format) => `html-escaper.${format === 'es' ? 'mjs' : format}`
     },
     sourcemap: true,
     target: 'esnext'
