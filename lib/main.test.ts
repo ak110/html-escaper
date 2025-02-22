@@ -1,4 +1,5 @@
-import { HtmlEscaper } from "./main.js"
+import MarkdownIt from "markdown-it"
+import HtmlEscaper from "./main.js"
 
 describe("HtmlEscaper", () => {
   let escaper: HtmlEscaper
@@ -146,6 +147,42 @@ describe("HtmlEscaper", () => {
       expect(escaper.escapeTag('<span style="color: red; font-size: 12px; position: absolute;">')).toBe(
         '<span style="color: red; font-size: 12px;">'
       )
+    })
+  })
+
+  describe("markdownItPlugin", () => {
+    it("MarkdownItのプラグインとして使用できる", () => {
+      const md = new MarkdownIt()
+      md.use(escaper.markdownItPlugin())
+
+      const input = `
+# MarkdownIt XSS Test
+
+- [Click me](javascript:alert(1))
+- [Safe link](https://example.com)
+- <script>alert(2)</script>
+- <span style="color: red;">あいうえお</span>
+
+<script>alert(3)</script>
+
+<details>
+  <summary>Details</summary>
+  <img src="image.jpg" onerror=alert(3)>
+</details>
+      `
+      const output = md.render(input)
+
+      // 許可されたタグと属性が保持される
+      expect(output).toContain("<h1>MarkdownIt XSS Test</h1>")
+      expect(output).toContain('<a href="https://example.com">Safe link</a>')
+      expect(output).toContain('<span style="color: red;">あいうえお</span>')
+      expect(output).toContain("<details>")
+      expect(output).toContain("<summary>Details</summary>")
+      expect(output).toContain('<img src="image.jpg">')
+
+      // 不正なタグがエスケープされる
+      expect(output).toContain("&lt;script&gt;alert(2)&lt;/script&gt;")
+      expect(output).toContain("&lt;script&gt;alert(3)&lt;/script&gt;")
     })
   })
 })

@@ -25,7 +25,7 @@ npm install @ak110/html-escaper
 
 ```html
 <script>
-  import { HtmlEscaper } from 'path/to/dist/html-escaper.min.mjs';
+  import HtmlEscaper from 'path/to/dist/html-escaper.min.mjs';
 
   const escaper = new HtmlEscaper();
 
@@ -42,6 +42,10 @@ npm install @ak110/html-escaper
   // - スクリプトタグはエスケープされます
   // - イベントハンドラは削除されます
   // - 許可された属性とスタイルは保持されます
+
+  // MarkdownItのプラグインとして使用する場合
+  const md = new MarkdownIt()
+  md.use(escaper.markdownItPlugin())
 </script>
 ```
 

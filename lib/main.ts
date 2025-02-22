@@ -1,6 +1,9 @@
+import { type default as MarkdownIt, type Options, type PluginSimple } from "markdown-it"
+import { type default as Renderer } from "markdown-it/lib/renderer.mjs"
+import { type default as Token } from "markdown-it/lib/token.mjs"
 import constants from "./constants.js"
 
-export class HtmlEscaper {
+export default class HtmlEscaper {
   // エスケープ対象のタグ（小文字で指定）
   private readonly allowedTags: string[] = [...constants.allowedTags]
 
@@ -143,6 +146,41 @@ export class HtmlEscaper {
     }
 
     return html
+  }
+
+  /**
+   * Markdown-itプラグインとして登録します。
+   * @param md markdown-itのインスタンス
+   */
+  public markdownItPlugin(): PluginSimple {
+    const escapeHtml = this.escapeHtml.bind(this)
+    const escapeTag = this.escapeTag.bind(this)
+    return (md: MarkdownIt): void => {
+      md.options.html = true
+
+      const defaultHtmlInline =
+        md.renderer.rules.html_inline ??
+        ((tokens: Token[], index: number, options: Options, _env: any, self: Renderer) => {
+          return self.renderToken(tokens, index, options)
+        })
+      const defaultHtmlBlock =
+        md.renderer.rules.html_block ??
+        ((tokens: Token[], index: number, options: Options, _env: any, self: Renderer) => {
+          return self.renderToken(tokens, index, options)
+        })
+
+      md.renderer.rules.html_inline = (tokens: Token[], index: number, options: Options, env: any, self: Renderer) => {
+        const token = tokens[index]
+        token.content = escapeTag(token.content)
+        return defaultHtmlInline(tokens, index, options, env, self)
+      }
+
+      md.renderer.rules.html_block = (tokens: Token[], index: number, options: Options, env: any, self: Renderer) => {
+        const token = tokens[index]
+        token.content = escapeHtml(token.content)
+        return defaultHtmlBlock(tokens, index, options, env, self)
+      }
+    }
   }
 
   /**

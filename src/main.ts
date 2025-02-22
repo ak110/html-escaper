@@ -1,4 +1,4 @@
-import { HtmlEscaper } from "../lib/main.js"
+import HtmlEscaper from "../lib/main.js"
 
 const escaper = new HtmlEscaper()
 const dirtyHtml = `
