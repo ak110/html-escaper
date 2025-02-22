@@ -9,25 +9,25 @@ importers:
   .:
     devDependencies:
       '@types/jest':
-        specifier: ^29.5.14
+        specifier: '>=29.5.14'
         version: 29.5.14
       jest:
-        specifier: ^29.7.0
+        specifier: '>=29.7.0'
         version: 29.7.0(@types/node@22.13.5)
       jest-environment-jsdom:
-        specifier: ^29.7.0
+        specifier: '>=29.7.0'
         version: 29.7.0
       terser:
-        specifier: ^5.39.0
+        specifier: '>=5.39.0'
         version: 5.39.0
       ts-jest:
-        specifier: ^29.2.5
+        specifier: '>=29.2.5'
         version: 29.2.5(@babel/core@7.26.9)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.9))(jest@29.7.0(@types/node@22.13.5))(typescript@5.7.3)
       typescript:
-        specifier: ~5.7.3
+        specifier: '>=5.7.3'
         version: 5.7.3
       vite:
-        specifier: ^6.1.1
+        specifier: '>=6.1.1'
         version: 6.1.1(@types/node@22.13.5)(terser@5.39.0)
 
 packages:
