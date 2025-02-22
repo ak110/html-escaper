@@ -7,6 +7,9 @@ install:
 run:
 	pnpm run dev
 
+format:
+	pnpm run format
+
 build:
 	pnpm run build
 

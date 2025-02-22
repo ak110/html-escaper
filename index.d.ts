@@ -5,38 +5,38 @@ declare class HtmlEscaper {
    * @param extraSelector 追加で許可するセレクタ（任意）
    * @returns エスケープ後のHTML文字列
    */
-  escapeHtml(input: string, extraSelector?: string): string;
+  escapeHtml(input: string, extraSelector?: string): string
 
   /**
    * 単一のHTMLタグ/閉じタグを前提にエスケープします。
    * @param input 入力HTMLタグ文字列
    * @returns エスケープ後のHTML文字列
    */
-  escapeTag(input: string): string;
+  escapeTag(input: string): string
 
   /**
    * 許可されているHTMLタグの一覧を取得します。
    * @returns 許可されているタグの配列
    */
-  getAllowedTags(): string[];
+  getAllowedTags(): string[]
 
   /**
    * 許可されている属性の一覧を取得します。
    * @returns タグごとの許可属性のマップ
    */
-  getAllowedAttributes(): { [key: string]: string[] };
+  getAllowedAttributes(): Record<string, string[]>
 
   /**
    * 許可されているCSSスタイルの一覧を取得します。
    * @returns 許可されているCSSプロパティのマップ
    */
-  getAllowedCssStyles(): string[];
+  getAllowedCssStyles(): string[]
 
   /**
    * 許可されているURIスキームの一覧を取得します。
    * @returns 許可されているスキームの配列
    */
-  getAllowedSchemas(): string[];
+  getAllowedSchemas(): string[]
 }
 
-export { HtmlEscaper };
+export { HtmlEscaper }

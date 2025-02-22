@@ -1,46 +1,49 @@
 import {
-  ALLOWED_ATTRIBUTES,
-  ALLOWED_CONTENT_TAGS,
-  ALLOWED_CSS_STYLES,
-  ALLOWED_SCHEMAS,
-  ALLOWED_TAGS,
-  URI_ATTRIBUTES
-} from "./constants";
-
-import { makeEscapedCopy, startsWithAny } from "./escaper";
+  allowedAttributes,
+  allowedContentTags,
+  allowedCssStyles,
+  allowedSchemas,
+  allowedTags,
+  uriAttributes,
+} from "./constants.js"
 
 export class HtmlEscaper {
   // エスケープ対象のタグ（小文字で指定）
-  private allowedTags: string[] = [...ALLOWED_TAGS];
+  private readonly allowedTags: string[] = [...allowedTags]
 
   // コンテンツ変換対象のタグ（DIVに変換）
-  private allowedContentTags: string[] = [...ALLOWED_CONTENT_TAGS];
+  private readonly allowedContentTags: string[] = [...allowedContentTags]
 
   // 許可する属性
-  private allowedAttributes: { [key: string]: string[] } = { ...ALLOWED_ATTRIBUTES };
+  private readonly allowedAttributes: Record<string, string[]> = {
+    ...allowedAttributes,
+  }
 
   // 許可するCSSプロパティ
-  private allowedCssStyles: string[] = [...ALLOWED_CSS_STYLES];
+  private readonly allowedCssStyles: string[] = [...allowedCssStyles]
 
   // 許可するスキーム
-  private allowedSchemas: string[] = [...ALLOWED_SCHEMAS];
+  private readonly allowedSchemas: string[] = [...allowedSchemas]
 
   // URIが指定できる属性
-  private uriAttributes: string[] = [...URI_ATTRIBUTES];
+  private readonly uriAttributes: string[] = [...uriAttributes]
 
-  private parser: DOMParser = new DOMParser();
+  private readonly parser: DOMParser = new DOMParser()
 
   public getAllowedTags(): string[] {
-    return this.allowedTags;
+    return this.allowedTags
   }
-  public getAllowedAttributes(): { [key: string]: string[] } {
-    return this.allowedAttributes;
+
+  public getAllowedAttributes(): Record<string, string[]> {
+    return this.allowedAttributes
   }
+
   public getAllowedCssStyles(): string[] {
-    return this.allowedCssStyles;
+    return this.allowedCssStyles
   }
+
   public getAllowedSchemas(): string[] {
-    return this.allowedSchemas;
+    return this.allowedSchemas
   }
 
   /**
@@ -50,33 +53,30 @@ export class HtmlEscaper {
    * @returns エスケープ後のHTML文字列
    */
   public escapeHtml(input: string, extraSelector?: string): string {
-    input = input.trim();
-    if (input === "") return "";
-    if (input === "<br>") return "";
+    input = input.trim()
+    if (input === "") return ""
+    if (input === "<br>") return ""
 
     // <body>が存在しない場合は補完
-    if (input.indexOf("<body") === -1) {
-      input = `<body>${input}</body>`;
+    if (!input.includes("<body")) {
+      input = `<body>${input}</body>`
     }
-    const doc: Document = this.parser.parseFromString(input, "text/html");
-    
-    const fragment = doc.createDocumentFragment();
-    Array.from(doc.body.childNodes).forEach(node => {
-      const processed = makeEscapedCopy(node, doc,
-        this.allowedTags, this.allowedContentTags, this.allowedAttributes, this.allowedCssStyles,
-        this.allowedSchemas, this.uriAttributes,
-        extraSelector);
-      if (processed) {
-        fragment.appendChild(processed);
-      }
-    });
 
-    const container: HTMLElement = doc.createElement("div");
-    container.appendChild(fragment);
-    const resultHtml = container.innerHTML;
+    const document: Document = this.parser.parseFromString(input, "text/html")
+
+    const fragment = document.createDocumentFragment()
+    for (const node of Array.from(document.body.childNodes)) {
+      const processed = this.makeEscapedCopy(node, document, extraSelector)
+      if (processed) {
+        fragment.append(processed)
+      }
+    }
+
+    const container: HTMLElement = document.createElement("div")
+    container.append(fragment)
+    const resultHtml = container.innerHTML
     // 改行等の調整（必要に応じて調整してください）
-    return resultHtml.replace(/<br[^>]*>(\S)/g, "<br>\n$1")
-                     .replace(/div><div/g, "div>\n<div");
+    return resultHtml.replaceAll(/<br[^>]*>(\S)/g, "<br>\n$1").replaceAll("div><div", "div>\n<div")
   }
 
   /**
@@ -86,78 +86,166 @@ export class HtmlEscaper {
    */
   public escapeTag(input: string): string {
     // 空文字列チェック
-    input = input.trim();
-    if (input === "") return "";
+    input = input.trim()
+    if (input === "") return ""
 
     // 終了タグの処理 (例: </script>)
     if (input.includes("</")) {
-      const match = input.match(/<\/([a-zA-Z][a-zA-Z0-9]*)\s*>/);
+      const match = /<\/([a-zA-Z][a-zA-Z\d]*)\s*>/.exec(input)
       if (match) {
-        const tagName = match[1].toLowerCase();
-        return this.allowedTags.includes(tagName)
-          ? `</${tagName}>`
-          : input.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const tagName = match[1].toLowerCase()
+        return this.allowedTags.includes(tagName) ? `</${tagName}>` : input.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
       }
     }
 
     // DOMParserでタグをパース
-    const doc = this.parser.parseFromString(`<body>${input}</body>`, "text/html");
-    const element = doc.body.firstElementChild as HTMLElement;
-    
-    // タグが存在しない場合は入力をそのまま返す
-    if (!element) return input;
+    const document = this.parser.parseFromString(`<body>${input}</body>`, "text/html")
+    const element = document.body.firstElementChild as HTMLElement
 
-    const tagName = element.tagName.toLowerCase();
+    // タグが存在しない場合は入力をそのまま返す
+    if (!element) return input
+
+    const tagName = element.tagName.toLowerCase()
 
     // 許可されていないタグはすべてエスケープする
     if (!this.allowedTags.includes(tagName)) {
-      return input.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return input.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
     }
 
     // 新しい要素を作成
-    const newElement = doc.createElement(tagName);
+    const newElement = document.createElement(tagName)
 
     // 属性の処理
     for (let i = 0; i < element.attributes.length; i++) {
-      const attr = element.attributes[i];
-      const attrName = attr.name.toLowerCase();
-      
-      if (this.allowedAttributes[tagName]?.includes(attrName) || 
-          this.allowedAttributes["*"]?.includes(attrName)) {
-        
-        if (attr.name === "style") {
-          // style属性の処理
+      const attribute = element.attributes[i]
+      const attributeName = attribute.name.toLowerCase()
+
+      if (this.allowedAttributes[tagName]?.includes(attributeName) || this.allowedAttributes["*"]?.includes(attributeName)) {
+        if (attribute.name === "style") {
+          // Style属性の処理
           for (let s = 0; s < element.style.length; s++) {
-            const styleName = element.style[s];
+            const styleName = element.style[s]
             if (this.allowedCssStyles.includes(styleName)) {
-              newElement.style.setProperty(
-                styleName, 
-                element.style.getPropertyValue(styleName)
-              );
+              newElement.style.setProperty(styleName, element.style.getPropertyValue(styleName))
             }
           }
-        } else if (this.uriAttributes.includes(attr.name)) {
+        } else if (this.uriAttributes.includes(attribute.name)) {
           // URI属性の処理
-          if (!attr.value.includes(":") || 
-              startsWithAny(attr.value, this.allowedSchemas)) {
-            newElement.setAttribute(attr.name, attr.value);
+          if (!attribute.value.includes(":") || this.startsWithAny(attribute.value, this.allowedSchemas)) {
+            newElement.setAttribute(attribute.name, attribute.value)
           }
         } else {
-          newElement.setAttribute(attr.name, attr.value);
+          newElement.setAttribute(attribute.name, attribute.value)
         }
       }
     }
 
     // テキストコンテンツの処理
     if (element.textContent) {
-      newElement.textContent = element.textContent;
+      newElement.textContent = element.textContent
     }
 
     // 空要素の場合は終了タグを省略
-    const html = newElement.outerHTML;
+    const html = newElement.outerHTML
     if (element.children.length === 0 && !element.textContent) {
-      return html.replace(/<([^>]+)><\/[^>]+>/, '<$1>');
+      return html.replace(/<([^>]+)><\/[^>]+>/, "<$1>")
     }
-    return html;
+
+    return html
+  }
+
+  /**
+   * ノードをエスケープしたコピーに変換します。
+   * @param node 対象ノード
+   * @param doc DOM(Document)
+   * @param extraSelector 追加で許可するセレクタ（任意）
+   * @returns エスケープ済みのノード
+   */
+  private makeEscapedCopy(node: Node, document: Document, extraSelector?: string): Node {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.cloneNode(true)
+    }
+
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element: HTMLElement = node as HTMLElement
+      // タグが許可リスト、もしくは追加セレクタにマッチしている場合
+      const tagName: string = element.tagName.toLowerCase()
+      if (
+        this.allowedTags.includes(tagName) ||
+        this.allowedContentTags.includes(tagName) ||
+        (extraSelector && element.matches(extraSelector))
+      ) {
+        // AllowedContentTagsの対象タグはDIVに変換
+        const newNode: HTMLElement = document.createElement(this.allowedContentTags.includes(tagName) ? "div" : tagName)
+
+        // 属性の処理
+        for (let i = 0; i < element.attributes.length; i++) {
+          const attribute = element.attributes[i]
+          const attributeName = attribute.name.toLowerCase()
+          if (
+            this.allowedAttributes[tagName]?.includes(attributeName) ||
+            this.allowedAttributes["*"]?.includes(attributeName)
+          ) {
+            if (attribute.name === "style") {
+              // Style属性内は許可するCSSプロパティのみ
+              for (let s = 0; s < element.style.length; s++) {
+                const styleName = element.style[s]
+                if (this.allowedCssStyles.includes(styleName)) {
+                  newNode.style.setProperty(styleName, element.style.getPropertyValue(styleName))
+                }
+              }
+            } else {
+              // URI属性の場合、スキームのチェック
+              if (
+                this.uriAttributes.includes(attribute.name) &&
+                attribute.value.includes(":") &&
+                !this.startsWithAny(attribute.value, this.allowedSchemas)
+              ) {
+                continue
+              }
+
+              newNode.setAttribute(attribute.name, attribute.value)
+            }
+          }
+        }
+
+        // 子要素の再帰処理
+        for (let i = 0; i < node.childNodes.length; i++) {
+          const child: Node = node.childNodes[i]
+          const subCopy: Node = this.makeEscapedCopy(child, document, extraSelector)
+          newNode.append(subCopy)
+        }
+
+        // 空のspan, b, i, uは削除
+        const newNodeTagName = newNode.tagName.toLowerCase()
+        if (["span", "b", "i", "u"].includes(newNodeTagName) && newNode.innerHTML.trim() === "") {
+          return document.createDocumentFragment()
+        }
+
+        return newNode
+      }
+
+      // Scriptなどの不正なタグの場合はエスケープしたテキストノードにする
+      return document.createTextNode(element.outerHTML)
+    }
+
+    // テキスト、コメントその他は空のフラグメントとして返す
+    return document.createDocumentFragment()
+  }
+
+  /**
+   * 指定した文字列が任意の文字列で始まるか判定します。
+   * @param str 判定対象文字列
+   * @param substrings 判定する文字列群
+   * @returns 任意の文字列で始まっていればtrue
+   */
+  private startsWithAny(string_: string, substrings: string[]): boolean {
+    for (const sub of substrings) {
+      if (string_.startsWith(sub)) {
+        return true
+      }
+    }
+
+    return false
   }
 }
