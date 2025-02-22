@@ -17,6 +17,8 @@ test:
 	pnpm run test
 
 publish:
+	$(MAKE) format
+	$(MAKE) build
 	pnpm publish
 
 .PHONY: help install run build test publish

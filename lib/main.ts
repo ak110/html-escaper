@@ -113,20 +113,20 @@ export class HtmlEscaper {
       const attributeName = attribute.name.toLowerCase()
 
       if (this.allowedAttributes[tagName]?.includes(attributeName) || this.allowedAttributes["*"]?.includes(attributeName)) {
-        if (attribute.name === "style") {
+        if (attributeName === "style") {
           // Style属性の処理
           for (const styleName of Array.from(element.style)) {
             if (this.allowedCssStyles.includes(styleName)) {
               newElement.style.setProperty(styleName, element.style.getPropertyValue(styleName))
             }
           }
-        } else if (this.uriAttributes.includes(attribute.name)) {
+        } else if (this.uriAttributes.includes(attributeName)) {
           // URI属性の処理
           if (!attribute.value.includes(":") || this.startsWithAny(attribute.value, this.allowedSchemas)) {
-            newElement.setAttribute(attribute.name, attribute.value)
+            newElement.setAttribute(attributeName, attribute.value)
           }
         } else {
-          newElement.setAttribute(attribute.name, attribute.value)
+          newElement.setAttribute(attributeName, attribute.value)
         }
       }
     }
@@ -176,7 +176,7 @@ export class HtmlEscaper {
             this.allowedAttributes[tagName]?.includes(attributeName) ||
             this.allowedAttributes["*"]?.includes(attributeName)
           ) {
-            if (attribute.name === "style") {
+            if (attributeName === "style") {
               // Style属性内は許可するCSSプロパティのみ
               for (const styleName of Array.from(element.style)) {
                 if (this.allowedCssStyles.includes(styleName)) {
@@ -186,14 +186,14 @@ export class HtmlEscaper {
             } else {
               // URI属性の場合、スキームのチェック
               if (
-                this.uriAttributes.includes(attribute.name) &&
+                this.uriAttributes.includes(attributeName) &&
                 attribute.value.includes(":") &&
                 !this.startsWithAny(attribute.value, this.allowedSchemas)
               ) {
                 continue
               }
 
-              newNode.setAttribute(attribute.name, attribute.value)
+              newNode.setAttribute(attributeName, attribute.value)
             }
           }
         }
@@ -202,12 +202,6 @@ export class HtmlEscaper {
         for (const child of Array.from(node.childNodes)) {
           const subCopy: Node = this.makeEscapedCopy(child, document, extraSelector)
           newNode.append(subCopy)
-        }
-
-        // 空のspan, b, i, uは削除
-        const newNodeTagName = newNode.tagName.toLowerCase()
-        if (["span", "b", "i", "u"].includes(newNodeTagName) && newNode.innerHTML.trim() === "") {
-          return document.createDocumentFragment()
         }
 
         return newNode
