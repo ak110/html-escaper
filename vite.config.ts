@@ -5,14 +5,10 @@ export default defineConfig({
     lib: {
       entry: './lib/main.ts',
       name: 'HtmlEscaper',
-      fileName: 'html-escaper',
       formats: ['es'],
+      fileName: 'html-escaper'
     },
-    rollupOptions: {
-      external: [],
-      output: {
-        globals: {},
-      },
-    },
-  },
+    sourcemap: true,
+    target: 'esnext'
+  }
 })
