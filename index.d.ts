@@ -23,7 +23,7 @@ declare class HtmlEscaper {
    * 許可されているCSSスタイルの一覧を取得します。
    * @returns 許可されているCSSプロパティのマップ
    */
-  getAllowedCssStyles(): { [key: string]: boolean };
+  getAllowedCssStyles(): string[];
 
   /**
    * 許可されているURIスキームの一覧を取得します。

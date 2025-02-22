@@ -136,16 +136,21 @@ export class HtmlEscaper {
   };
 
   // 許可するCSSプロパティ
-  private allowedCssStyles: { [key: string]: boolean } = {
-    "background-color": true, "color": true, "font-size": true, "font-weight": true,
-    "text-align": true, "text-decoration": true, "width": true
-  };
+  private allowedCssStyles: string[] = [
+    "background-color",
+    "color",
+    "font-size",
+    "font-weight",
+    "text-align",
+    "text-decoration",
+    "width"
+  ];
 
   // 許可するスキーム
   private allowedSchemas: string[] = ['http:', 'https:', 'data:', 'm-files:', 'file:', 'ftp:', 'mailto:', 'pw:'];
 
   // URIが指定できる属性
-  private uriAttributes: { [key: string]: boolean } = { "href": true, "action": true };
+  private uriAttributes: string[] = ["href", "action"];
 
   private parser: DOMParser = new DOMParser();
 
@@ -216,13 +221,13 @@ export class HtmlEscaper {
               // style属性内は許可するCSSプロパティのみ
               for (let s = 0; s < element.style.length; s++) {
                 const styleName = element.style[s];
-                if (this.allowedCssStyles[styleName]) {
+                if (this.allowedCssStyles.includes(styleName)) {
                   newNode.style.setProperty(styleName, element.style.getPropertyValue(styleName));
                 }
               }
             } else {
               // URI属性の場合、スキームのチェック
-              if (this.uriAttributes[attr.name]) {
+              if (this.uriAttributes.includes(attr.name)) {
                 if (attr.value.indexOf(":") > -1 && !this.startsWithAny(attr.value, this.allowedSchemas)) {
                   continue;
                 }
@@ -273,7 +278,7 @@ export class HtmlEscaper {
   public getAllowedAttributes(): { [key: string]: string[] } {
     return this.allowedAttributes;
   }
-  public getAllowedCssStyles(): { [key: string]: boolean } {
+  public getAllowedCssStyles(): string[] {
     return this.allowedCssStyles;
   }
   public getAllowedSchemas(): string[] {

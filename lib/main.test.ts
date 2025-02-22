@@ -89,8 +89,8 @@ describe('HtmlEscaper', () => {
 
     it('許可されたCSSスタイルのリストを取得できる', () => {
       const styles = escaper.getAllowedCssStyles();
-      expect(styles['color']).toBe(true);
-      expect(styles['background-color']).toBe(true);
+      expect(styles.includes('color')).toBe(true);
+      expect(styles.includes('background-color')).toBe(true);
     });
 
     it('許可されたスキーマのリストを取得できる', () => {
