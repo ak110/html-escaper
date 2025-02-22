@@ -13,16 +13,16 @@ HTMLコンテンツを適切にエスケープし、許可された要素と属�
 
 ## インストール
 
+### npmを使用する場合
+
 ```bash
 pnpm install
 ```
 
-## 使用方法
+### ブラウザで直接利用する場合
 
-```typescript
-import { HtmlEscaper } from 'html-escaper';
-
-const escaper = new HtmlEscaper();
+```html
+<script src="path/to/dist/html-escaper.min.js"></script>
 
 // 安全でない可能性のあるHTMLをエスケープ
 const dirtyHtml = `
