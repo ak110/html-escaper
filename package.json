@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "HTML文字列をエスケープするライブラリ",
   "license": "MIT",
   "author": "aki. <mark@aur.ll.to>",
@@ -38,7 +38,6 @@
     "require": "./dist/html-escaper.cjs"
   },
   "scripts": {
-    "dev": "vite",
     "build": "rm -rf dist types && tsc && vite build && terser dist/html-escaper.mjs -o dist/html-escaper.min.mjs --source-map \"content=dist/html-escaper.mjs.map,url=html-escaper.min.js.map\" --compress --mangle",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "format": "xo --fix && prettier --write ."

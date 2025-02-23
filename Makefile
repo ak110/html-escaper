@@ -4,9 +4,6 @@ help:
 install:
 	pnpm install
 
-run:
-	pnpm run dev
-
 format:
 	pnpm run format
 
@@ -14,11 +11,12 @@ build:
 	pnpm run build
 
 test:
+	$(MAKE) format
+	$(MAKE) build
 	pnpm run test
 
 publish:
-	$(MAKE) format
-	$(MAKE) build
+	$(MAKE) test
 	pnpm publish
 
 .PHONY: help install run build test publish
