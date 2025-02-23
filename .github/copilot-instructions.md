@@ -28,6 +28,6 @@ XSS（クロスサイトスクリプティング）攻撃を防ぐため、HTML�
 - `escapeHtml` メソッドは、HTML文字列全体をエスケープします。
 - `escapeTag` メソッドは、HTMLタグをエスケープします。
 - Markdown-itプラグインとして使用する場合は、`markdownItPlugin` メソッドを使用します。
-- テストは `jest` で実行できます。
-- コードのフォーマットは `xo` と `prettier` で実行できます。
-- ビルドは `vite` で実行できます。
+- コードのフォーマット/Lintは `pnpm run format` で実行します。コード修正後に実行してください。
+- ビルドは `pnpm run build` で実行できます。
+- テストは `pnpm run test` で実行できます。

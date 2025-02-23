@@ -112,6 +112,13 @@ describe("HtmlEscaper", () => {
       // スクリプトタグがエスケープされる
       expect(output).toContain("&lt;script&gt;")
     })
+
+    it("エッジケース", () => {
+      expect(escaper.escapeHtml("")).toBe("")
+      expect(escaper.escapeHtml("   ")).toBe("")
+      expect(escaper.escapeHtml("ゎ")).toBe("ゎ")
+      expect(escaper.escapeHtml("<br />")).toBe("<br>")
+    })
   })
 
   describe("escapeTag", () => {
@@ -147,6 +154,13 @@ describe("HtmlEscaper", () => {
       expect(escaper.escapeTag('<span style="color: red; font-size: 12px; position: absolute;">')).toBe(
         '<span style="color: red; font-size: 12px;">'
       )
+    })
+
+    it("エッジケース", () => {
+      expect(escaper.escapeTag("")).toBe("")
+      expect(escaper.escapeTag("   ")).toBe("")
+      expect(escaper.escapeTag("ゎ")).toBe("ゎ")
+      expect(escaper.escapeTag("<br />")).toBe("<br>")
     })
   })
 
