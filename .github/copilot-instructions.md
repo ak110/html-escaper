@@ -1,58 +1,69 @@
 # HTML Escaper - Copilot Instructions
 
-このライブラリは、XSS攻撃を防ぐためのHTMLエスケープライブラリです。
+このドキュメントには、プロジェクトの保守と開発に関する重要な注意点を記録します。
 
-## プロジェクト概要
+## プロジェクト構成のポイント
 
-- **目的**: 安全なHTMLコンテンツの生成
-- **主な機能**: HTMLタグのエスケープ、属性のサニタイズ、CSSスタイルの検証
-- **言語**: TypeScript
-- **ビルドツール**: Vite
-- **テストフレームワーク**: Jest
+### 依存関係管理
 
-## コードの重要なポイント
+1. **依存関係の分類**
 
-### 1. HtmlEscaperクラス
+   - `devDependencies`: 開発時のみ必要なパッケージ（ビルドツール、テストライブラリ、型定義など）
+   - `dependencies`: 実行時に必要なパッケージ
+   - `optionalDependencies`: 基本的に使用を避け、代わりにdevDependenciesかdependenciesを使用
 
-メインクラスは`lib/main.ts`に実装されており、以下の主要なメソッドを提供します：
+### TypeScript設定
 
-- `escapeHtml(input: string, extraSelector?: string): string`
-  - HTML文字列のエスケープを行う主要メソッド
-  - 任意のセレクタを追加で許可可能
+1. **型定義ファイル生成**
 
-### 2. セキュリティルール
+   ```json
+   {
+     "declaration": true,
+     "emitDeclarationOnly": true,
+     "declarationDir": "./"
+   }
+   ```
 
-以下の要素について、ホワイトリスト方式で制御しています：
+2. **ファイル管理**
+   - `include`には実際に存在するディレクトリのみを指定
+   - 設定ファイル（vite.config.tsなど）も必要に応じてincludeに含める
+   - `exclude`で`node_modules`と`dist`を除外
 
-- **許可タグ**: div, p, span など基本的なHTML要素
-- **許可属性**:
-  - グローバル: id, title, class, style
-  - 要素固有: href, src, alt など
-- **許可CSSプロパティ**:
-  - background-color
-  - color
-  - font-size
-  - font-weight
-  - text-align
-  - text-decoration
-  - width
-- **許可URLスキーム**:
-  - http:, https:, data:, m-files:, file:, ftp:, mailto:, pw:
+### ビルド設定
 
-### 3. 実装ポイント
+1. **Vite**
 
-新機能を追加する際は、以下の点に注意が必要です：
+   - ライブラリモードでビルド
+   - ES ModulesとCommonJSの両方のフォーマットをサポート
+   - ソースマップを生成
 
-1. 新しいタグやプロパティは、セキュリティリスクを評価した上で許可リストに追加
-2. DOMParserを使用したHTML解析とサニタイズ
-3. 再帰的な要素の処理による深いネストへの対応
-4. 空要素（span, b, i, u）の適切な処理
+2. **Jest**
+   - ESMサポートを有効化
+   - ts-jestでTypeScriptをサポート
+   - jsdomテスト環境を使用
 
-### 4. テスト
+## レビューポイント
 
-- `lib/main.test.ts`にテストケースを追加
-- 以下のケースのテストが重要：
-  - 悪意のあるスクリプトの無効化
-  - 許可された要素と属性の保持
-  - 不正なURLスキームのブロック
-  - CSSプロパティのサニタイズ
+プロジェクト構成をレビューする際は、以下の点を確認：
+
+1. **依存関係の適切な分類**
+
+   - 各パッケージが適切なカテゴリ（dev/prod）に分類されているか
+   - 不要な依存関係が含まれていないか
+
+2. **TypeScript設定の整合性**
+
+   - プロジェクト構造と`include`/`exclude`パターンの一致
+   - 型定義ファイルの生成設定
+   - モジュール解決の設定
+
+3. **ビルド設定の妥当性**
+
+   - 出力フォーマットの設定
+   - ソースマップの生成
+   - 最適化設定
+
+4. **パッケージ設定の確認**
+   - package.jsonのexports設定
+   - mainとmoduleフィールドの設定
+   - typesフィールドの設定
