@@ -45,13 +45,10 @@ export default class HtmlEscaper {
   /**
    * HTML文字列をエスケープします。
    * @param input 入力HTML文字列
-   * @param extraSelector 追加で許可するセレクタ（任意）
    * @returns エスケープ後のHTML文字列
    */
-  public escapeHtml(input: string, extraSelector?: string): string {
-    input = input.trim()
+  public escapeHtml(input: string): string {
     if (input === "") return ""
-    if (input === "<br>") return ""
 
     // <body>が存在しない場合は補完
     if (!input.includes("<body")) {
@@ -62,7 +59,7 @@ export default class HtmlEscaper {
 
     const fragment = document.createDocumentFragment()
     for (const node of Array.from(document.body.childNodes)) {
-      const processed = this.makeEscapedCopy(node, document, extraSelector)
+      const processed = this.makeEscapedCopy(node, document)
       if (processed) {
         fragment.append(processed)
       }
@@ -81,9 +78,7 @@ export default class HtmlEscaper {
    * @returns エスケープ後のHTML文字列
    */
   public escapeTag(input: string): string {
-    // 空文字列チェック
     input = input.trim()
-    if (input === "") return ""
 
     // 終了タグの処理 (例: </script>)
     if (input.includes("</")) {
@@ -94,11 +89,8 @@ export default class HtmlEscaper {
       }
     }
 
-    // DOMParserでタグをパース
     const document = this.parser.parseFromString(`<body>${input}</body>`, "text/html")
     const element = document.body.firstElementChild as HTMLElement
-
-    // タグが存在しない場合は入力をそのまま返す
     if (!element) return input
 
     const tagName = element.tagName.toLowerCase()
@@ -187,10 +179,9 @@ export default class HtmlEscaper {
    * ノードをエスケープしたコピーに変換します。
    * @param node 対象ノード
    * @param doc DOM(Document)
-   * @param extraSelector 追加で許可するセレクタ（任意）
    * @returns エスケープ済みのノード
    */
-  private makeEscapedCopy(node: Node, document: Document, extraSelector?: string): Node {
+  private makeEscapedCopy(node: Node, document: Document): Node {
     if (node.nodeType === Node.TEXT_NODE) {
       return node.cloneNode(true)
     }
@@ -199,11 +190,7 @@ export default class HtmlEscaper {
       const element: HTMLElement = node as HTMLElement
       // タグが許可リスト、もしくは追加セレクタにマッチしている場合
       const tagName: string = element.tagName.toLowerCase()
-      if (
-        this.allowedTags.includes(tagName) ||
-        this.allowedContentTags.includes(tagName) ||
-        (extraSelector && element.matches(extraSelector))
-      ) {
+      if (this.allowedTags.includes(tagName) || this.allowedContentTags.includes(tagName)) {
         // AllowedContentTagsの対象タグはDIVに変換
         const newNode: HTMLElement = document.createElement(this.allowedContentTags.includes(tagName) ? "div" : tagName)
 
@@ -238,7 +225,7 @@ export default class HtmlEscaper {
 
         // 子要素の再帰処理
         for (const child of Array.from(node.childNodes)) {
-          const subCopy: Node = this.makeEscapedCopy(child, document, extraSelector)
+          const subCopy: Node = this.makeEscapedCopy(child, document)
           newNode.append(subCopy)
         }
 

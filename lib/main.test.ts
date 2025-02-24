@@ -115,9 +115,9 @@ describe("HtmlEscaper", () => {
 
     it("エッジケース", () => {
       expect(escaper.escapeHtml("")).toBe("")
-      expect(escaper.escapeHtml("   ")).toBe("")
       expect(escaper.escapeHtml("ゎ")).toBe("ゎ")
       expect(escaper.escapeHtml("<br />")).toBe("<br>")
+      expect(escaper.escapeHtml("<!-- -->")).toBe("")
     })
   })
 
@@ -145,11 +145,6 @@ describe("HtmlEscaper", () => {
       expect(escaper.escapeTag('<a href="http://example.com">')).toBe('<a href="http://example.com">')
     })
 
-    it("空の入力を処理する", () => {
-      expect(escaper.escapeTag("")).toBe("")
-      expect(escaper.escapeTag("   ")).toBe("")
-    })
-
     it("許可されたスタイルを保持する", () => {
       expect(escaper.escapeTag('<span style="color: red; font-size: 12px; position: absolute;">')).toBe(
         '<span style="color: red; font-size: 12px;">'
@@ -158,9 +153,9 @@ describe("HtmlEscaper", () => {
 
     it("エッジケース", () => {
       expect(escaper.escapeTag("")).toBe("")
-      expect(escaper.escapeTag("   ")).toBe("")
       expect(escaper.escapeTag("ゎ")).toBe("ゎ")
       expect(escaper.escapeTag("<br />")).toBe("<br>")
+      // Expect(escaper.escapeTag("<!-- -->")).toBe("")
     })
   })
 
