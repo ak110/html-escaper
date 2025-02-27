@@ -19,4 +19,8 @@ publish:
 	$(MAKE) test
 	pnpm publish
 
-.PHONY: help install run build test publish
+example:
+	$(MAKE) build
+	pnpm tsx examples/escape.ts
+
+.PHONY: help install run build test publish example
