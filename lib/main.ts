@@ -81,11 +81,11 @@ export default class HtmlEscaper {
     input = input.trim()
 
     // 終了タグの処理 (例: </script>)
-    if (input.includes("</")) {
+    if (input.startsWith("</")) {
       const match = /<\/([a-zA-Z][a-zA-Z\d]*)\s*>/.exec(input)
       if (match) {
         const tagName = match[1].toLowerCase()
-        return this.allowedTags.includes(tagName) ? `</${tagName}>` : input.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+        return this.allowedTags.includes(tagName) ? `</${tagName}>` : `&lt;/${tagName}&gt;`
       }
     }
 
@@ -96,36 +96,15 @@ export default class HtmlEscaper {
     const tagName = element.tagName.toLowerCase()
 
     // 許可されていないタグはすべてエスケープする
-    if (!this.allowedTags.includes(tagName)) {
+    if (!this.allowedTags.includes(tagName) && !this.allowedContentTags.includes(tagName)) {
+      // Return document.createTextNode(element.outerHTML).textContent ?? ""
       return input.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
     }
 
     // 新しい要素を作成
-    const newElement = document.createElement(tagName)
-
+    const newElement = document.createElement(this.allowedContentTags.includes(tagName) ? "div" : tagName)
     // 属性の処理
-    for (const attribute of Array.from(element.attributes)) {
-      const attributeName = attribute.name.toLowerCase()
-
-      if (this.allowedAttributes[tagName]?.includes(attributeName) || this.allowedAttributes["*"]?.includes(attributeName)) {
-        if (attributeName === "style") {
-          // Style属性の処理
-          for (const styleName of Array.from(element.style)) {
-            if (this.allowedCssStyles.includes(styleName)) {
-              newElement.style.setProperty(styleName, element.style.getPropertyValue(styleName))
-            }
-          }
-        } else if (this.uriAttributes.includes(attributeName)) {
-          // URI属性の処理
-          if (!attribute.value.includes(":") || this.startsWithAny(attribute.value, this.allowedSchemas)) {
-            newElement.setAttribute(attributeName, attribute.value)
-          }
-        } else {
-          newElement.setAttribute(attributeName, attribute.value)
-        }
-      }
-    }
-
+    this.processAttribute(element, newElement)
     // テキストコンテンツの処理
     if (element.textContent) {
       newElement.textContent = element.textContent
@@ -188,56 +167,57 @@ export default class HtmlEscaper {
 
     if (node.nodeType === Node.ELEMENT_NODE) {
       const element: HTMLElement = node as HTMLElement
-      // タグが許可リスト、もしくは追加セレクタにマッチしている場合
       const tagName: string = element.tagName.toLowerCase()
-      if (this.allowedTags.includes(tagName) || this.allowedContentTags.includes(tagName)) {
-        // AllowedContentTagsの対象タグはDIVに変換
-        const newNode: HTMLElement = document.createElement(this.allowedContentTags.includes(tagName) ? "div" : tagName)
-
-        // 属性の処理
-        for (const attribute of Array.from(element.attributes)) {
-          const attributeName = attribute.name.toLowerCase()
-          if (
-            this.allowedAttributes[tagName]?.includes(attributeName) ||
-            this.allowedAttributes["*"]?.includes(attributeName)
-          ) {
-            if (attributeName === "style") {
-              // Style属性内は許可するCSSプロパティのみ
-              for (const styleName of Array.from(element.style)) {
-                if (this.allowedCssStyles.includes(styleName)) {
-                  newNode.style.setProperty(styleName, element.style.getPropertyValue(styleName))
-                }
-              }
-            } else {
-              // URI属性の場合、スキームのチェック
-              if (
-                this.uriAttributes.includes(attributeName) &&
-                attribute.value.includes(":") &&
-                !this.startsWithAny(attribute.value, this.allowedSchemas)
-              ) {
-                continue
-              }
-
-              newNode.setAttribute(attributeName, attribute.value)
-            }
-          }
-        }
-
-        // 子要素の再帰処理
-        for (const child of Array.from(node.childNodes)) {
-          const subCopy: Node = this.makeEscapedCopy(child, document)
-          newNode.append(subCopy)
-        }
-
-        return newNode
+      // Scriptなどの不正なタグの場合はエスケープしたテキストノードにする
+      if (!this.allowedTags.includes(tagName) && !this.allowedContentTags.includes(tagName)) {
+        return document.createTextNode(element.outerHTML)
       }
 
-      // Scriptなどの不正なタグの場合はエスケープしたテキストノードにする
-      return document.createTextNode(element.outerHTML)
+      // タグが許可リスト、もしくは追加セレクタにマッチしている場合
+      // AllowedContentTagsの対象タグはDIVに変換
+      const newElement = document.createElement(this.allowedContentTags.includes(tagName) ? "div" : tagName)
+      // 属性の処理
+      this.processAttribute(element, newElement)
+      // 子要素の再帰処理
+      for (const child of Array.from(node.childNodes)) {
+        const subCopy: Node = this.makeEscapedCopy(child, document)
+        newElement.append(subCopy)
+      }
+
+      return newElement
     }
 
     // テキスト、コメントその他は空のフラグメントとして返す
     return document.createDocumentFragment()
+  }
+
+  /**
+   * 属性を処理し、許可された属性のみを新しい要素に設定します。
+   * @param sourceElement 処理元の要素
+   * @param targetElement 処理先の要素
+   */
+  private processAttribute(sourceElement: HTMLElement, targetElement: HTMLElement): void {
+    const tagName: string = sourceElement.tagName.toLowerCase()
+    for (const attribute of Array.from(sourceElement.attributes)) {
+      const attributeName = attribute.name.toLowerCase()
+      if (this.allowedAttributes[tagName]?.includes(attributeName) || this.allowedAttributes["*"]?.includes(attributeName)) {
+        if (attributeName === "style") {
+          // Style属性の処理
+          for (const styleName of Array.from(sourceElement.style)) {
+            if (this.allowedCssStyles.includes(styleName)) {
+              targetElement.style.setProperty(styleName, sourceElement.style.getPropertyValue(styleName))
+            }
+          }
+        } else if (this.uriAttributes.includes(attributeName)) {
+          // URI属性の処理
+          if (!attribute.value.includes(":") || this.startsWithAny(attribute.value, this.allowedSchemas)) {
+            targetElement.setAttribute(attributeName, attribute.value)
+          }
+        } else {
+          targetElement.setAttribute(attributeName, attribute.value)
+        }
+      }
+    }
   }
 
   /**
